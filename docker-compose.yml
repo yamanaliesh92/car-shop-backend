@@ -1,0 +1,86 @@
+version: '3.6'
+
+services:
+  kafka:
+    image: docker.io/bitnami/kafka:3.4
+    profiles:
+      - dev
+    ports:
+      - '9092:9092'
+    volumes:
+      - 'kafka_data:/bitnami'
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+
+  user:
+    profiles:
+      - dev
+    build:
+      context: .
+      target: base
+    ports:
+      - '4001:4001'
+    command: ['yarn', 'nest', 'start', 'user', '--watch']
+    depends_on:
+      - userdb
+      - kafka
+    volumes:
+      - './:/app'
+
+  gateway:
+    profiles:
+      - dev
+    depends_on:
+      - kafka
+    build:
+      context: .
+      target: base
+    ports:
+      - '8001:8001'
+    command: ['yarn', 'nest', 'start', 'gateway', '--watch']
+    volumes:
+      - './:/app'
+
+  category:
+    profiles:
+      - dev
+    build:
+      context: .
+      target: base
+    ports:
+      - '5000:5000'
+    command: ['yarn', 'nest', 'start', 'category', '--watch']
+    depends_on:
+      - catDb
+      - kafka
+    volumes:
+      - './:/app'
+
+  catDb:
+    image: postgres
+    ports:
+      - '5448:5432'
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=data_base
+    profiles:
+      - dev
+
+  userdb:
+    image: postgres
+    ports:
+      - '5444:5432'
+    environment:
+      - POSTGRES_PASSWORD=password_yaman
+      - POSTGRES_USER=yaman
+      - POSTGRES_DB=database_yaman
+    profiles:
+      - dev
+
+volumes:
+  kafka_data:
+    driver: local
+
+networks:
+  project:
