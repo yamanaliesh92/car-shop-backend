@@ -1,12 +1,18 @@
-// import {
-//   ExecutionContext,
-//   Injectable,
-//   Logger,
-//   UnauthorizedException,
-// } from '@nestjs/common';
-// import { Jwt } from './jwt.service';
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { TokenISValidApplicationException } from '../error/token.appliactionException';
+import { Jwt } from './jwt.service';
 
-// const HEDER_TOKEN = 'auth';
+const HEADER_NAME = 'authorization';
+const REFRESH_NAME = 'refresh';
 
 export interface IRequest {
   user: {
@@ -14,52 +20,14 @@ export interface IRequest {
   };
 }
 
-// @Injectable()
-// export class authGuard {
-//   constructor(private readonly jwt: Jwt) {}
-
-//   async canActivate(context: ExecutionContext) {
-//     try {
-//       const request = context.switchToHttp().getRequest();
-
-//       const token = request.headers[HEDER_TOKEN];
-
-//       if (!token) {
-//         throw new UnauthorizedException();
-//       }
-
-//       const decode = await this.jwt.decode(token);
-
-//       if (!decode) {
-//         throw new UnauthorizedException();
-//       }
-//       request.user = decode;
-//       return true;
-//     } catch (err) {
-//       Logger.error('Unknown error in auth guard', { err });
-//       throw new UnauthorizedException();
-//     }
-//   }
-// }
-
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-
-import { Request } from 'express';
-
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService, private jwt: Jwt) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.auth;
+    const token = request.headers[HEADER_NAME];
+    const refToken = request.headers[REFRESH_NAME];
 
     Logger.log('token', token);
 
@@ -67,20 +35,34 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: `${process.env.SECRET_ACCESS_TOKEN}`,
-      });
+      const payload = await this.jwt.verify(token);
 
       Logger.log({ payload });
-      request['user'] = payload;
-    } catch {
-      throw new UnauthorizedException();
-    }
-    return true;
-  }
 
-  // private extractTokenFromHeader(request: Request): string | undefined {
-  //   const [type, token] = request.headers.authorization?.split(' ') ?? [];
-  //   return type === 'Bearer' ? token : undefined;
-  // }
+      request['user'] = payload;
+      return true;
+    } catch (err) {
+      if (err instanceof TokenISValidApplicationException) {
+        try {
+          const payloadRefreshToken = await this.jwt.verifyRefreshTone(
+            refToken,
+          );
+
+          const id = payloadRefreshToken.id;
+
+          const token = await this.jwt.sign({ id: id });
+          const refreshToken = await this.jwt.refresh({ id: id });
+
+          request['new_tokens'] = { token, refreshToken };
+          request['user'] = { id };
+
+          return true;
+        } catch (error) {
+          throw new BadRequestException();
+        }
+      }
+
+      throw new InternalServerErrorException('some');
+    }
+  }
 }

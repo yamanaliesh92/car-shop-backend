@@ -4,5 +4,4 @@ export enum KafkaErrorCode {
   USER_NOT_FOUND = 'user not found',
   UNKNOWN_ERROR = 'some thing went wrong try again ',
   CAR_NOT_FOUND = 'car not found',
-  UN_A = "'UnauthorizedException',",
 }

@@ -17,10 +17,10 @@ export class KafkaErrorMapperService {
       case KafkaErrorCode.CAR_NOT_FOUND:
         throw new BadRequestException('car is not found');
       case KafkaErrorCode.USER_ALREADY_EXIST:
-        throw new BadRequestException('is exist');
+        throw new BadRequestException('USER_ALREADY_EXIST');
 
       case KafkaErrorCode.USER_NOT_FOUND:
-        throw new BadRequestException('not found');
+        throw new BadRequestException('user  not found');
 
       case KafkaErrorCode.USER_NOT_FOUND:
         throw new BadRequestException('email or password is not correct');
@@ -31,7 +31,9 @@ export class KafkaErrorMapperService {
           err,
           this.constructor.name,
         );
-        throw new InternalServerErrorException();
+        throw new InternalServerErrorException(
+          'some thing went wrong please try again..',
+        );
     }
   }
 }

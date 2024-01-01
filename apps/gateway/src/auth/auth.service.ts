@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -12,7 +13,7 @@ import { ForgetPasswordUserDto } from '../dto/changePasswordUser.dto';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { LoginDto } from '../dto/login.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
-import { IResponseCreateUser, IResponseLogin } from '../types';
+import { IResponseCreateUser } from '../types';
 
 @Injectable()
 export class AuthService {
@@ -41,11 +42,15 @@ export class AuthService {
       const result = await lastValueFrom(
         this.authClient.send('user.get.one', id),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
       Logger.log('error during auth service', { err });
       throw new InternalServerErrorException('some thing went wrong');
     }
@@ -54,8 +59,8 @@ export class AuthService {
   async Refresh(id: number) {
     try {
       const result = await lastValueFrom(this.authClient.send('refresh', id));
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -66,7 +71,11 @@ export class AuthService {
 
   async getUser(): Promise<IResponseCreateUser[] | null> {
     try {
-      return await lastValueFrom(this.authClient.send('user.all', {}));
+      const result = await lastValueFrom(this.authClient.send('user.all', {}));
+      if (result.err) {
+        this.mapperError.map(result.err);
+      }
+      return result;
     } catch (err) {
       Logger.log('error during auth service', { err });
       throw new InternalServerErrorException('some thing went wrong');
@@ -78,10 +87,10 @@ export class AuthService {
       const result = await lastValueFrom(
         this.authClient.send('user.create', JSON.stringify(body)),
       );
-      Logger.log('res', result);
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
+
       return result;
     } catch (err) {
       Logger.log('error during auth service', { err });
@@ -94,8 +103,8 @@ export class AuthService {
       const result = await lastValueFrom(
         this.authClient.send('user.forgot.password', body),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return 'update password is done';
     } catch (err) {
@@ -109,8 +118,8 @@ export class AuthService {
       const result = await lastValueFrom(
         this.authClient.send('user.update', body),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -124,9 +133,9 @@ export class AuthService {
       const result = await lastValueFrom(
         this.authClient.send('user.login', JSON.stringify(body)),
       );
-      if (result.error) {
+      if (result.err) {
         Logger.log('error', { ee: result.error });
-        this.mapperError.map(result.error);
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {

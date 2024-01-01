@@ -1,38 +1,15 @@
-import {
-  BadRequestException,
-  NotFoundException,
-  Patch,
-  Query,
-  Req,
-  UseGuards,
-  ValidationPipe,
-} from '@nestjs/common';
-import {
-  Body,
-  InternalServerErrorException,
-  Logger,
-  Post,
-} from '@nestjs/common';
-import { Controller, Get } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from './command/create-user.command';
 import { GetOneUserCommand } from './command/get-one-user.command';
 import { LoginCommand } from './command/login.command';
 import { RefreshTokenCommand } from './command/refershToken.command';
-import {
-  ClientKafka,
-  EventPattern,
-  MessagePattern,
-  Payload,
-} from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
-import { PasswordIsNotCorrectApplicationException } from './error/password-not-correct-application.exception';
 import { UserAlreadyExistApplicationException } from './error/user-already-exist.application';
 import { UserNotFoundApplicationException } from './error/user-not-found.application.exception';
-
-import { RefreshAuthGuard } from './guard/refersh.auth.guard';
-
-import { UserDto } from './dto/userDto';
 
 import { KafkaErrorCode } from 'y/shared/error/error.code';
 import { FindUserCommand } from './command/find-user.command.handler';
@@ -40,29 +17,17 @@ import { ChangePasswordCommand } from './command/change-password.command';
 
 import { UpdateUserCommand } from './command/update.command';
 
-interface I {
-  user: {
-    id: number;
-  };
-}
 @Controller('user')
 export class UserController {
   constructor(private readonly comamnd: CommandBus) {}
 
-  @UseGuards(RefreshAuthGuard)
-  @Post('refresh')
-  async refresh(@Req() req: I) {
-    return this.comamnd.execute(new RefreshTokenCommand({ id: req.user.id }));
-  }
-  // @Get()
-  // @UseGuards(AuthGuard)
   @MessagePattern('user.get.one')
-  async getMe(@Payload(ValidationPipe) id: number): Promise<UserDto> {
+  async getMe(@Payload(ValidationPipe) id: number) {
     Logger.log('id in cotttttttttttttroller', id);
     try {
       return await this.comamnd.execute(new GetOneUserCommand({ id: id }));
     } catch (err) {
-      Logger.log('error in controller', err);
+      return { err: KafkaErrorCode.UNKNOWN_ERROR };
     }
   }
 
@@ -173,6 +138,10 @@ export class UserController {
 
   @MessagePattern('user.all')
   async findAllUser() {
-    return await this.comamnd.execute(new FindUserCommand());
+    try {
+      return await this.comamnd.execute(new FindUserCommand());
+    } catch (err) {
+      return { err: KafkaErrorCode.UNKNOWN_ERROR };
+    }
   }
 }

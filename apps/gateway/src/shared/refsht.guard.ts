@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { Request } from 'express';
+const HEADER_NAME = 'auth';
 
 @Injectable()
 export class RefreshAuthGuard implements CanActivate {
@@ -15,7 +15,9 @@ export class RefreshAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.auth;
+    const token = request.headers[HEADER_NAME];
+
+    Logger.log('refToken', { token });
 
     if (!token) {
       throw new UnauthorizedException();
@@ -31,10 +33,5 @@ export class RefreshAuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     return true;
-  }
-
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Refresh' ? token : undefined;
   }
 }

@@ -17,7 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateCarDto } from '../dto/car/createCar.dto';
 import { UpdateCarDto } from '../dto/car/updateProduct.dto';
 
-import { authGuard, IRequest } from '../shared/auth.guard';
+import { IRequest } from '../shared/auth.guard';
 import { CarGuard } from '../shared/car.guard';
 import { CarGetWayService } from './carGetWay.service';
 

@@ -27,6 +27,7 @@ export class CarGuard {
       return true;
     } catch (err) {
       Logger.error('Unknwon error in product guard', { err });
+
       return false;
     }
   }

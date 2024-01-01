@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
   Logger,
   Patch,
   Post,
@@ -47,8 +48,8 @@ export class AuthController {
   }
 
   @Post('create')
-  create(@Body() body: CreateUserDto) {
-    return this.authser.createUser(body);
+  async create(@Body() body: CreateUserDto) {
+    return await this.authser.createUser(body);
   }
 
   @UseGuards(AuthGuard)

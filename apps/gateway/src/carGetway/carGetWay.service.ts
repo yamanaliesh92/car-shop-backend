@@ -37,8 +37,8 @@ export class CarGetWayService {
     try {
       Logger.log('id');
       const result = await lastValueFrom(this.client.send('car.get.all', {}));
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -53,8 +53,8 @@ export class CarGetWayService {
         this.client.send('user.get.cars', userId),
       );
 
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -67,8 +67,8 @@ export class CarGetWayService {
     try {
       const result = await lastValueFrom(this.client.send('car.get.one', id));
 
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -82,8 +82,8 @@ export class CarGetWayService {
       const result = await lastValueFrom(
         this.client.send('car.get.by.category', category),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -95,8 +95,8 @@ export class CarGetWayService {
   async delete(id: number): Promise<string> {
     try {
       const result = await lastValueFrom(this.client.send('car.delete', id));
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return `delete product ${id} is done`;
     } catch (err) {
@@ -119,8 +119,8 @@ export class CarGetWayService {
           img: img,
         }),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return result;
     } catch (err) {
@@ -134,8 +134,8 @@ export class CarGetWayService {
       const result = await lastValueFrom(
         this.client.send('car.update.img', { id: id, img: img }),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return `update Img  ${id} is done`;
     } catch (err) {
@@ -149,8 +149,8 @@ export class CarGetWayService {
       const result = await lastValueFrom(
         this.client.send('car.update', { ...body, id: id }),
       );
-      if (result.error) {
-        this.mapperError.map(result.error);
+      if (result.err) {
+        this.mapperError.map(result.err);
       }
       return `update category ${id} is done`;
     } catch (err) {

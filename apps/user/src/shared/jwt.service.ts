@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as jwt from 'jsonwebtoken';
+
 import { UnknownApplicationException } from '../error/unknown.application';
 
 export interface PayloadTokenData {
@@ -12,10 +12,9 @@ export class Jwt {
   constructor(private jwtService: JwtService) {}
   async sign(payload: PayloadTokenData) {
     try {
-      // Logger.log('id ', { payload });
       return await this.jwtService.signAsync(payload, {
         secret: `${process.env.SECRET_ACCESS_TOKEN}`,
-        expiresIn: '5m',
+        expiresIn: '2m',
       });
     } catch (err) {
       throw new UnknownApplicationException(err);
