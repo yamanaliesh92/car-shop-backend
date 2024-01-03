@@ -46,19 +46,15 @@ export class Jwt {
   }
 
   async sign(payload: PayloadTokenData) {
-    // try {
-    const a = await this.jwtService.signAsync(payload, {
-      secret: `${process.env.SECRET_ACCESS_TOKEN}`,
+    try {
+      return await this.jwtService.signAsync(payload, {
+        secret: `${process.env.SECRET_ACCESS_TOKEN}`,
 
-      expiresIn: '2m',
-    });
-
-    // });
-    Logger.log('a', a);
-    return a;
-    // } catch (err) {
-    // throw new InternalServerErrorException(err);
-    // }
+        expiresIn: '2m',
+      });
+    } catch (err) {
+      throw new TokenISValidApplicationException();
+    }
   }
 
   async refresh(payload: PayloadTokenData) {
@@ -68,7 +64,7 @@ export class Jwt {
         expiresIn: '7d',
       });
     } catch (err) {
-      throw new InternalServerErrorException(err);
+      throw new TokenISValidApplicationException();
     }
   }
 }
